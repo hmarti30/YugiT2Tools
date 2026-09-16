@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Discord Infraction Form</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    background: #f3f4f6;
+    color: #1f2937;
+    padding: 24px;
+  }
+  .container {
+    max-width: 900px;
+    margin: 0 auto;
+  }
+  h1 { margin: 0 0 6px; font-size: 28px; }
+  .subtitle { margin: 0 0 24px; color: #6b7280; }
+  .card {
+    background: white;
+    border-radius: 12px;
+    padding: 22px;
+    margin-bottom: 18px;
+    box-shadow: 0 2px 8px rgba(0,0,0,.08);
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+  }
+  label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+  input, select, textarea {
+    width: 100%;
+    border: 1px solid #d1d5db;
+    border-radius: 7px;
+    padding: 10px 11px;
+    font: inherit;
+    background: white;
+  }
+  input:focus, select:focus, textarea:focus {
+    outline: 2px solid #9ca3af;
+    outline-offset: 1px;
+  }
+  textarea { min-height: 120px; resize: vertical; }
+  .full { grid-column: 1 / -1; }
+  .buttons {
+    display: flex;
+    gap: 10px;
+    margin-top: 18px;
+    flex-wrap: wrap;
+  }
+  button {
+    border: 0;
+    border-radius: 7px;
+    padding: 11px 18px;
+    font: inherit;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .copy { background: #5865f2; color: white; }
+  .copy:hover { background: #4752c4; }
+  .clear { background: #e5e7eb; color: #374151; }
+  .output {
+    min-height: 210px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    white-space: pre-wrap;
+  }
+  .status {
+    min-height: 22px;
+    margin-top: 8px;
+    font-size: 14px;
+    color: #166534;
+  }
+  @media (max-width: 650px) {
+    body { padding: 12px; }
+    .grid { grid-template-columns: 1fr; }
+    .full { grid-column: auto; }
+    .card { padding: 16px; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>Discord Infraction Form</h1>
+  <p class="subtitle">Enter the infraction details, then copy the formatted report into Discord.</p>
+
+  <div class="card">
+    <div class="grid">
+      <div>
+        <label for="duelistName">Name</label>
+        <input id="duelistName" type="text" autocomplete="off">
+      </div>
+
+      <div>
+        <label for="konamiId">Konami ID</label>
+        <input id="konamiId" type="text" inputmode="numeric" autocomplete="off">
+      </div>
+
+      <div>
+        <label for="round">Round</label>
+        <input id="round" type="text" inputmode="numeric" autocomplete="off">
+      </div>
+
+      <div>
+        <label for="table">Table</label>
+        <input id="table" type="text" inputmode="numeric" autocomplete="off">
+      </div>
+
+      <div>
+        <label for="infraction">Infraction</label>
+        <select id="infraction">
+          <option value="">Select infraction</option>
+          <option>PE</option>
+          <option>DE</option>
+          <option>MC</option>
+          <option>DC</option>
+          <option>UC</option>
+        </select>
+      </div>
+
+      <div>
+        <label for="penalty">Penalty</label>
+        <select id="penalty">
+          <option value="">Select penalty</option>
+          <option>Warning</option>
+          <option>Game Loss</option>
+          <option>Match Loss</option>
+        </select>
+      </div>
+
+      <div class="full">
+        <label for="description">Brief Description</label>
+        <textarea id="description" placeholder="Enter a brief description of the infraction..."></textarea>
+      </div>
+
+      <div class="full">
+        <label for="judgeName">Name</label>
+        <input id="judgeName" type="text" autocomplete="off" placeholder="Judge name">
+      </div>
+    </div>
+
+    <div class="buttons">
+      <button class="copy" id="copyButton" type="button">Copy to Clipboard</button>
+      <button class="clear" id="clearButton" type="button">Clear Form</button>
+    </div>
+    <div class="status" id="status" aria-live="polite"></div>
+  </div>
+
+  <div class="card">
+    <label for="output">Discord Output</label>
+    <textarea id="output" class="output" readonly></textarea>
+  </div>
+</div>
+
+<script>
+  const fields = [
+    "duelistName", "konamiId", "round", "table",
+    "infraction", "penalty", "description", "judgeName"
+  ];
+
+  function value(id) {
+    return document.getElementById(id).value.trim();
+  }
+
+  function generateOutput() {
+    const text = "```\n" +
+`Table number: ${value("table")}
+` +
+`Duelist: ${value("duelistName")}
+` +
+`Konami ID: ${value("konamiId")}
+` +
+`Infraction: ${value("infraction")}
+` +
+`Penalty: ${value("penalty")}
+` +
+`Round: ${value("round")}
+` +
+`Brief Description: ${value("description")}
+` +
+`Name: ${value("judgeName")}
+` +
+"```";
+
+    document.getElementById("output").value = text;
+    return text;
+  }
+
+  async function copyOutput() {
+    const text = generateOutput();
+
+    try {
+      await navigator.clipboard.writeText(text);
+      document.getElementById("status").textContent = "Copied to clipboard!";
+    } catch (err) {
+      const output = document.getElementById("output");
+      output.focus();
+      output.select();
+      document.execCommand("copy");
+      document.getElementById("status").textContent = "Copied to clipboard!";
+    }
+
+    setTimeout(() => {
+      document.getElementById("status").textContent = "";
+    }, 2000);
+  }
+
+  function clearForm() {
+    fields.forEach(id => {
+      const el = document.getElementById(id);
+      el.value = "";
+    });
+    document.getElementById("output").value = "";
+    document.getElementById("status").textContent = "";
+    document.getElementById("duelistName").focus();
+  }
+
+  fields.forEach(id => {
+    document.getElementById(id).addEventListener("input", generateOutput);
+    document.getElementById(id).addEventListener("change", generateOutput);
+  });
+
+  document.getElementById("copyButton").addEventListener("click", copyOutput);
+  document.getElementById("clearButton").addEventListener("click", clearForm);
+
+  generateOutput();
+</script>
+</body>
+</html>
